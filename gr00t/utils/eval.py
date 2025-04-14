@@ -49,7 +49,6 @@ def calc_mse_for_single_trajectory(
 
     for step_count in range(steps):
         data_point = dataset.get_step_data(traj_id, step_count)
-
         # NOTE this is to get all modality keys concatenated
         # concat_state = data_point[f"state.{modality_keys[0]}"][0]
         # concat_gt_action = data_point[f"action.{modality_keys[0]}"][0]
@@ -92,14 +91,24 @@ def calc_mse_for_single_trajectory(
     num_of_joints = state_joints_across_time.shape[1]
 
     if plot:
-        fig, axes = plt.subplots(nrows=num_of_joints, ncols=1, figsize=(8, 4 * num_of_joints))
-
-        # Add a global title showing the modality keys
+        # Increase overall figure height to compensate for spacing
+        # For n subplots with spacing, total height needs to account for both
+        fig, axes = plt.subplots(nrows=num_of_joints, ncols=1, figsize=(12, 30 * num_of_joints))
+        
+        # Ensure axes is always a list, even with only one joint
+        if num_of_joints == 1:
+            axes = [axes]
+            
+        # Add a global title showing the modality keys with smaller font
         fig.suptitle(
             f"Trajectory {traj_id} - Modalities: {', '.join(modality_keys)}",
-            fontsize=16,
+            fontsize=14,
             color="blue",
+            y=0.99
         )
+        
+        # Use moderate spacing that won't compress the plots too much
+        plt.subplots_adjust(hspace=0.8, top=0.98, bottom=0.02, left=0.08, right=0.92)
 
         for i, ax in enumerate(axes):
             ax.plot(state_joints_across_time[:, i], label="state joints")
@@ -113,10 +122,14 @@ def calc_mse_for_single_trajectory(
                 else:
                     ax.plot(j, gt_action_joints_across_time[j, i], "ro")
 
-            ax.set_title(f"Joint {i}")
-            ax.legend()
+            # Change from Joint to DOF (Degree of Freedom)
+            ax.set_title(f"DOF {i}", fontsize=10, pad=5)  # Add padding below title
+            ax.set_xlabel("Steps", fontsize=8)
+            ax.set_ylabel("Value", fontsize=8)
+            ax.tick_params(axis='both', which='major', labelsize=10)
+            ax.legend(loc='upper right', fontsize=10)
 
-        plt.tight_layout()
         plt.show()
 
     return mse
+
