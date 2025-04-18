@@ -49,7 +49,6 @@ def calc_mse_for_single_trajectory(
 
     for step_count in range(steps):
         data_point = dataset.get_step_data(traj_id, step_count)
-
         # NOTE this is to get all modality keys concatenated
         # concat_state = data_point[f"state.{modality_keys[0]}"][0]
         # concat_gt_action = data_point[f"action.{modality_keys[0]}"][0]
@@ -64,8 +63,14 @@ def calc_mse_for_single_trajectory(
         gt_action_joints_across_time.append(concat_gt_action)
 
         if step_count % action_horizon == 0:
-            print("inferencing at step: ", step_count)
             action_chunk = policy.get_action(data_point)
+            # print(data_point.keys(), '*******data_point')
+            # for key in data_point.keys():
+            #     if isinstance(data_point[key], list):
+            #         print(data_point[key], f'******* {key}', type(data_point[key]))
+            #     else:
+            #         print(data_point[key].shape, f'******* {key}', type(data_point[key]))
+            # print(action_chunk.keys(), '*******')
             for j in range(action_horizon):
                 # NOTE: concat_pred_action = action[f"action.{modality_keys[0]}"][j]
                 # the np.atleast_1d is to ensure the action is a 1D array, handle where single value is returned
@@ -79,30 +84,37 @@ def calc_mse_for_single_trajectory(
     state_joints_across_time = np.array(state_joints_across_time)
     gt_action_joints_across_time = np.array(gt_action_joints_across_time)
     pred_action_joints_across_time = np.array(pred_action_joints_across_time)[:steps]
-    assert (
-        state_joints_across_time.shape
-        == gt_action_joints_across_time.shape
-        == pred_action_joints_across_time.shape
-    )
+    # assert (
+    #     state_joints_across_time.shape
+    #     == gt_action_joints_across_time.shape
+    #     == pred_action_joints_across_time.shape
+    # )
 
     # calc MSE across time
-    mse = np.mean((gt_action_joints_across_time - pred_action_joints_across_time) ** 2)
-    print("Unnormalized Action MSE across single traj:", mse)
+    action_mse = np.mean((gt_action_joints_across_time - pred_action_joints_across_time) ** 2)
+    print("Unnormalized Action MSE across single traj:", action_mse)
+    joint_mse = np.mean((pred_action_joints_across_time - gt_action_joints_across_time) ** 2, axis=0)
+    print("Joint MSE across single traj:", joint_mse)
 
-    num_of_joints = state_joints_across_time.shape[1]
+    num_of_joints = gt_action_joints_across_time.shape[1]
 
     if plot:
-        fig, axes = plt.subplots(nrows=num_of_joints, ncols=1, figsize=(8, 4 * num_of_joints))
-
-        # Add a global title showing the modality keys
-        fig.suptitle(
-            f"Trajectory {traj_id} - Modalities: {', '.join(modality_keys)}",
-            fontsize=16,
-            color="blue",
-        )
+        # Increase overall figure height to compensate for spacing
+        # For n subplots with spacing, total height needs to account for both
+        fig, axes = plt.subplots(nrows=num_of_joints, ncols=1, figsize=(12, 3 * num_of_joints))
+        
+        # Ensure axes is always a list, even with only one joint
+        if num_of_joints == 1:
+            axes = [axes]
+            
+        # Add a global title showing the modality keys with smaller font
+        fig.suptitle(f"Action Trajectory Comparison - Total MSE: {action_mse:.6f}", fontsize=14)
+        
+        # Use moderate spacing that won't compress the plots too much
+        # plt.subplots_adjust(hspace=0.8, top=0.98, bottom=0.02, left=0.08, right=0.92)
 
         for i, ax in enumerate(axes):
-            ax.plot(state_joints_across_time[:, i], label="state joints")
+            # ax.plot(state_joints_across_time[:, i], label="state joints")
             ax.plot(gt_action_joints_across_time[:, i], label="gt action joints")
             ax.plot(pred_action_joints_across_time[:, i], label="pred action joints")
 
@@ -113,10 +125,38 @@ def calc_mse_for_single_trajectory(
                 else:
                     ax.plot(j, gt_action_joints_across_time[j, i], "ro")
 
-            ax.set_title(f"Joint {i}")
-            ax.legend()
+            # Change from Joint to DOF (Degree of Freedom)
+            ax.set_title(f"DOF {i} - MSE: {joint_mse[i]:.6f}")
+            ax.set_xlabel("Steps")
+            ax.set_ylabel("Action Value (delta)")
+            # ax.tick_params(axis='both', which='major', labelsize=10)
+            ax.legend(loc='upper right')
+            ax.grid(True, alpha=0.3)
+        plt.tight_layout(rect=[0, 0, 1, 0.97])
+        plt.savefig("./mse-groot-wo-nigel-tr.png", dpi=300, bbox_inches='tight')
 
-        plt.tight_layout()
         plt.show()
+        
+        gt_position_x = np.cumsum(gt_action_joints_across_time[:, 0])
+        pred_position_x = np.cumsum(pred_action_joints_across_time[:, 0])
+        gt_position_y = np.cumsum(gt_action_joints_across_time[:, 1])
+        pred_position_y = np.cumsum(pred_action_joints_across_time[:, 1])
+        gt_position_z = np.cumsum(gt_action_joints_across_time[:, 2])
+        pred_position_z = np.cumsum(pred_action_joints_across_time[:, 2])
+        
+        # plot the position in 3D figure
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(gt_position_x, gt_position_y, gt_position_z, label='gt position')
+        ax.plot(pred_position_x, pred_position_y, pred_position_z, label='pred position')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.legend()
+        plt.savefig("./mse-groot-wo-nigel-tr-3d.png", dpi=300, bbox_inches='tight')
+        plt.show()
+        
+            
 
-    return mse
+    return action_mse
+
