@@ -26,6 +26,7 @@ COLOR_JITTER_PARAMS="${COLOR_JITTER_PARAMS:-brightness 0.3 contrast 0.4 saturati
 USE_PERCENTILES=""
 SHORTEST_IMAGE_EDGE=""
 CROP_FRACTION=""
+USE_DDP=""
 EXTRA_ARGS=()
 
 usage() {
@@ -42,6 +43,7 @@ Usage: bash examples/finetune.sh \
   [--shortest-image-edge <pixels>] \
   [--crop-fraction <fraction>] \
   [--ds-weights-alpha <value>] \
+  [--use-ddp] \
   [--save-only-model] \
   [--resume-from-checkpoint] \
   [-- <extra launch_finetune.py args>...]
@@ -101,6 +103,10 @@ while [ "$#" -gt 0 ]; do
         --ds-weights-alpha)
             DS_WEIGHTS_ALPHA="$2"
             shift 2
+            ;;
+        --use-ddp)
+            USE_DDP=1
+            shift
             ;;
         --save-only-model)
             SAVE_ONLY_MODEL=1
@@ -201,6 +207,9 @@ if [ -n "$CROP_FRACTION" ]; then
 fi
 if [ -n "$DS_WEIGHTS_ALPHA" ]; then
     LAUNCH_CMD+=(--ds_weights_alpha "$DS_WEIGHTS_ALPHA")
+fi
+if [ -n "${USE_DDP:-}" ]; then
+    LAUNCH_CMD+=(--use_ddp)
 fi
 if [ -n "${SAVE_ONLY_MODEL:-}" ]; then
     LAUNCH_CMD+=(--save_only_model)
