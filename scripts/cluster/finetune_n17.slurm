@@ -25,10 +25,17 @@
 # Same as both official and the reference: lr=1e-4, global_batch_size=32,
 # tune_llm=false, tune_visual=false, warmup_ratio=0.05, weight_decay=1e-5.
 #
+# Checkpoints land in:
+#   $CHECKPOINT_ROOT/<EXP_NAME>/<CHAIN_ID>/
+# EXP_NAME is built as <prefix>_<cam>_<steps>_bs<batch>_lr<lr> unless you
+# already put that hyperparameter tag in EXP_NAME. Example:
+#   g1_pick_trocar_room_10k_bs32_lr1e-4
+#
 # Usage:
 #   sbatch --gpus=1 scripts/cluster/finetune_n17.slurm
-#   sbatch --gpus=8 --export=ALL,NUM_GPUS=8,MAX_STEPS=30000,SAVE_STEPS=4000 \
+#   sbatch --gpus=1 --export=ALL,MAX_STEPS=30000,SAVE_STEPS=3000 \
 #       scripts/cluster/finetune_n17.slurm
+#   bash scripts/cluster/submit_compare_exps.sh
 
 set -uo pipefail
 
@@ -38,11 +45,11 @@ PROJECT_LOG="/lustre/fsw/portfolios/healthcareeng/projects/healthcareeng_isaac/l
 REPO_ROOT="${REPO_ROOT:-${USER_BASE}/code/Isaac-GR00T}"
 CONTAINER_IMAGE="${CONTAINER_IMAGE:-${USER_BASE}/docker/gr00t-n1.7-cu128.sqsh}"
 DATASET_ROOT="${DATASET_ROOT:-${USER_BASE}/datasets}"
-DATASET_DIR_NAME="${DATASET_DIR_NAME:-pick_trocar_teleop_success}"
+DATASET_DIR_NAME="${DATASET_DIR_NAME:-pick_trocar_teleop_success_train}"
 DATASET_PATH="${DATASET_PATH:-${DATASET_ROOT}/${DATASET_DIR_NAME}}"
 HF_CACHE_ROOT="${HF_CACHE_ROOT:-${USER_BASE}/cache/huggingface}"
 CHECKPOINT_ROOT="${CHECKPOINT_ROOT:-${USER_BASE}/checkpoints/gr00t_ft}"
-EXP_NAME="${EXP_NAME:-g1_pick_trocar_n1.7}"
+EXP_PREFIX="${EXP_PREFIX:-g1_pick_trocar}"
 
 NUM_GPUS="${NUM_GPUS:-${SLURM_GPUS_ON_NODE:-1}}"
 GLOBAL_BATCH_SIZE="${GLOBAL_BATCH_SIZE:-32}"
@@ -60,12 +67,39 @@ HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-0}"
 TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-0}"
 MASTER_PORT="${MASTER_PORT:-29500}"
 
+if (( MAX_STEPS % 1000 == 0 )); then
+    STEPS_TAG="$((MAX_STEPS / 1000))k"
+else
+    STEPS_TAG="${MAX_STEPS}"
+fi
+LR_TAG="$(printf '%s' "${LEARNING_RATE}" | tr '[:upper:]' '[:lower:]')"
+HYPER_TAG="${STEPS_TAG}_bs${GLOBAL_BATCH_SIZE}_lr${LR_TAG}"
+
+MODALITY_STEM="$(basename "${MODALITY_CONFIG_PATH}" .py)"
+case "${MODALITY_STEM}" in
+    g1_dex3_head_h25_config) CAM_TAG="headh25" ;;
+    g1_dex3_head_config) CAM_TAG="head" ;;
+    g1_dex3_config) CAM_TAG="room" ;;
+    *) CAM_TAG="" ;;
+esac
+
+if [[ -z "${EXP_NAME:-}" ]]; then
+    if [[ -n "${CAM_TAG}" ]]; then
+        EXP_NAME="${EXP_PREFIX}_${CAM_TAG}_${HYPER_TAG}"
+    else
+        EXP_NAME="${EXP_PREFIX}_${HYPER_TAG}"
+    fi
+elif [[ "${EXP_NAME}" != *"${HYPER_TAG}"* ]]; then
+    EXP_NAME="${EXP_NAME}_${HYPER_TAG}"
+fi
+
 CHAIN_ID="${CHAIN_ID:-${SLURM_JOB_ID}}"
 RUN_COUNT="${RUN_COUNT:-1}"
 MAX_RUNS="${MAX_RUNS:-8}"
 INNER_TIMEOUT="${INNER_TIMEOUT:-3.9h}"
 
-CKPT_DIR="${CHECKPOINT_ROOT}/${EXP_NAME}/${CHAIN_ID}"
+CKPT_PARENT="${CHECKPOINT_ROOT}/${EXP_NAME}"
+CKPT_DIR="${CKPT_PARENT}/${CHAIN_ID}"
 mkdir -p "${CKPT_DIR}" "${PROJECT_LOG}" "${HF_CACHE_ROOT}" "${DATASET_ROOT}"
 
 for required in "${REPO_ROOT}" "${CONTAINER_IMAGE}" "${HF_CACHE_ROOT}"; do
@@ -97,7 +131,7 @@ fi
 
 MOUNTS="${REPO_ROOT}:/workspace/Isaac-GR00T"
 MOUNTS="${MOUNTS},${HF_CACHE_ROOT}:/root/.cache/huggingface"
-MOUNTS="${MOUNTS},${CKPT_DIR}:/workspace/logs"
+MOUNTS="${MOUNTS},${CKPT_PARENT}:/workspace/logs"
 MOUNTS="${MOUNTS},${MODALITY_CONFIG_PATH}:/workspace/configs/modality_config.py:ro"
 
 CONTAINER_DATASET_PATH=""
@@ -113,6 +147,7 @@ done
 HOST_DATASET_PATH="${DATASET_PATH}"
 
 echo "=== GR00T N1.7 fine-tune ${RUN_COUNT}/${MAX_RUNS} job=${SLURM_JOB_ID} chain=${CHAIN_ID} ==="
+echo "Exp name:   ${EXP_NAME}"
 echo "Repo:       ${REPO_ROOT}"
 echo "Image:      ${CONTAINER_IMAGE}"
 echo "Data:       ${HOST_DATASET_PATH}"
@@ -120,6 +155,7 @@ echo "Output:     ${CKPT_DIR}"
 echo "GPUs:       ${NUM_GPUS}"
 echo "Max steps:  ${MAX_STEPS}"
 echo "Batch:      ${GLOBAL_BATCH_SIZE}"
+echo "LR:         ${LEARNING_RATE}"
 echo "Save every: ${SAVE_STEPS}"
 echo "Resume:     ${RESUME_FROM_CHECKPOINT}"
 echo "Embodiment: ${EMBODIMENT_TAG}"
@@ -169,6 +205,7 @@ timeout "${INNER_TIMEOUT}" srun --ntasks=1 --gpus="${NUM_GPUS}" \
         MAX_STEPS="'"${MAX_STEPS}"'" \
         GLOBAL_BATCH_SIZE="'"${GLOBAL_BATCH_SIZE}"'" \
         SAVE_STEPS="'"${SAVE_STEPS}"'" \
+        LEARNING_RATE="'"${LEARNING_RATE}"'" \
         DATALOADER_NUM_WORKERS="'"${DATALOADER_NUM_WORKERS}"'" \
         USE_WANDB="'"${USE_WANDB}"'" \
         bash examples/finetune.sh \
@@ -177,7 +214,7 @@ timeout "${INNER_TIMEOUT}" srun --ntasks=1 --gpus="${NUM_GPUS}" \
             --embodiment-tag "'"${EMBODIMENT_TAG}"'" \
             --modality-config-path /workspace/configs/modality_config.py \
             --output-dir /workspace/logs \
-            --experiment-name "'"${EXP_NAME}"'" \
+            --experiment-name "'"${CHAIN_ID}"'" \
             -- '"${FINETUNE_EXTRA[*]}"'
     '
 EXIT_CODE=$?
@@ -198,6 +235,7 @@ CHECKPOINT_ROOT="${CHECKPOINT_ROOT}",\
 CONTAINER_IMAGE="${CONTAINER_IMAGE}",\
 REPO_ROOT="${REPO_ROOT}",\
 EXP_NAME="${EXP_NAME}",\
+EXP_PREFIX="${EXP_PREFIX}",\
 NUM_GPUS="${NUM_GPUS}",\
 GLOBAL_BATCH_SIZE="${GLOBAL_BATCH_SIZE}",\
 MAX_STEPS="${MAX_STEPS}",\

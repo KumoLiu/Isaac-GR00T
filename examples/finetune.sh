@@ -9,6 +9,7 @@ MAX_STEPS="${MAX_STEPS:-10000}"
 USE_WANDB="${USE_WANDB:-1}"
 DATALOADER_NUM_WORKERS="${DATALOADER_NUM_WORKERS:-4}"
 GLOBAL_BATCH_SIZE="${GLOBAL_BATCH_SIZE:-32}"
+LEARNING_RATE="${LEARNING_RATE:-1e-4}"
 SHARD_SIZE="${SHARD_SIZE:-1024}"
 NUM_SHARDS_PER_EPOCH="${NUM_SHARDS_PER_EPOCH:-100000}"
 EPISODE_SAMPLING_RATE="${EPISODE_SAMPLING_RATE:-0.1}"
@@ -158,7 +159,7 @@ LAUNCH_CMD=(
     --max_steps "$MAX_STEPS"
     --warmup_ratio 0.05
     --weight_decay 1e-5
-    --learning_rate 1e-4
+    --learning_rate "$LEARNING_RATE"
     "${WANDB_FLAG[@]}"
     --global_batch_size "$GLOBAL_BATCH_SIZE"
     --dataloader_num_workers "$DATALOADER_NUM_WORKERS"
