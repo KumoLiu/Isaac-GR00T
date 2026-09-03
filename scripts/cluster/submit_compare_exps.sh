@@ -16,7 +16,7 @@
 # Usage:
 #   bash scripts/cluster/submit_compare_exps.sh
 #   DRY_RUN=1 bash scripts/cluster/submit_compare_exps.sh
-#   GPUS=1 DATASET_DIR_NAME=g1_pick_trocar_rollout_all_260_headcam_train \
+#   DATASET_PATH=/path/to/pick_trocar_teleop_success_train \
 #     MODALITY_CONFIG_PATH=$PWD/examples/g1-dex3/g1_dex3_head_config.py \
 #     bash scripts/cluster/submit_compare_exps.sh
 
@@ -27,33 +27,48 @@ SLURM="${SCRIPT_DIR}/finetune_n17.slurm"
 GPUS="${GPUS:-1}"
 DRY_RUN="${DRY_RUN:-0}"
 
-# Let finetune_n17.slurm build EXP_NAME from steps/batch/lr.
+# Do not inherit stale names/paths from the login shell. --export=ALL previously
+# leaked DATASET_PATH=.../pick_trocar_teleop_success (no _train).
 if [[ "${KEEP_EXP_NAME:-0}" != "1" ]]; then
     unset EXP_NAME
 fi
+if [[ "${KEEP_DATASET_PATH:-0}" != "1" ]]; then
+    unset DATASET_PATH
+fi
 
 USER_BASE="${USER_BASE:-/lustre/fsw/portfolios/healthcareeng/users/${USER}}"
+DEFAULT_NESTED="${USER_BASE}/datasets/s2r_data_dev/yunl/real/g1/pick_trocar_teleop_success_train"
+DEFAULT_LEAF="${USER_BASE}/datasets/pick_trocar_teleop_success_train"
+
 if [[ -z "${DATASET_PATH:-}" ]]; then
-    for candidate in \
-        "${USER_BASE}/datasets/s2r_data_dev/yunl/real/g1/pick_trocar_teleop_success_train" \
-        "${USER_BASE}/datasets/pick_trocar_teleop_success_train"; do
-        if [[ -f "${candidate}/meta/info.json" ]]; then
-            DATASET_PATH="${candidate}"
-            break
-        fi
-    done
-    DATASET_PATH="${DATASET_PATH:-${USER_BASE}/datasets/s2r_data_dev/yunl/real/g1/pick_trocar_teleop_success_train}"
+    if [[ -f "${DEFAULT_NESTED}/meta/info.json" ]]; then
+        DATASET_PATH="${DEFAULT_NESTED}"
+    elif [[ -f "${DEFAULT_LEAF}/meta/info.json" ]]; then
+        DATASET_PATH="${DEFAULT_LEAF}"
+    else
+        DATASET_PATH="${DEFAULT_NESTED}"
+    fi
 fi
+
 echo "DATASET_PATH=${DATASET_PATH}"
+if [[ ! -f "${DATASET_PATH}/meta/info.json" ]]; then
+    echo "No meta/info.json under DATASET_PATH. Check the train split path before submitting." >&2
+    exit 1
+fi
 
 submit() {
     local job_name="$1"
-    shift
-    echo "sbatch --gpus=${GPUS} --job-name=${job_name} --export=ALL,$* ${SLURM}"
+    local export_list="$2"
+    echo "sbatch --gpus=${GPUS} --job-name=${job_name} --export=${export_list} ${SLURM}"
     if [[ "${DRY_RUN}" != "1" ]]; then
-        sbatch --gpus="${GPUS}" --job-name="${job_name}" --export=ALL,"$*" "${SLURM}"
+        sbatch --gpus="${GPUS}" --job-name="${job_name}" --export="${export_list}" "${SLURM}"
     fi
 }
+
+COMMON="NUM_GPUS=${GPUS},DATASET_PATH=${DATASET_PATH}"
+if [[ -n "${MODALITY_CONFIG_PATH:-}" ]]; then
+    COMMON="${COMMON},MODALITY_CONFIG_PATH=${MODALITY_CONFIG_PATH}"
+fi
 
 echo "Comparison sweep (1 GPU unless GPUS is set). Expected EXP_NAME tags:"
 echo "  A  <prefix>_<cam>_10k_bs32_lr1e-4"
@@ -62,13 +77,13 @@ echo "  C  <prefix>_<cam>_10k_bs64_lr1e-4"
 echo "  D  <prefix>_<cam>_10k_bs32_lr2e-5"
 
 submit "g1_10k_bs32" \
-    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
+    "MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,${COMMON}"
 
 submit "g1_30k_bs32" \
-    MAX_STEPS=30000,SAVE_STEPS=3000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
+    "MAX_STEPS=30000,SAVE_STEPS=3000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,${COMMON}"
 
 submit "g1_10k_bs64" \
-    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=64,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
+    "MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=64,LEARNING_RATE=1e-4,${COMMON}"
 
 submit "g1_10k_lr2e-5" \
-    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=2e-5,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
+    "MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=2e-5,${COMMON}"
