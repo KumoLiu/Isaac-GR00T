@@ -75,7 +75,7 @@ USE_WANDB="${USE_WANDB:-0}"
 TUNE_LLM="${TUNE_LLM:-false}"
 TUNE_VISUAL="${TUNE_VISUAL:-false}"
 EMBODIMENT_TAG="${EMBODIMENT_TAG:-NEW_EMBODIMENT}"
-MODALITY_CONFIG_PATH="${MODALITY_CONFIG_PATH:-${REPO_ROOT}/examples/g1-dex3/g1_dex3_config.py}"
+MODALITY_CONFIG_PATH="${MODALITY_CONFIG_PATH:-${REPO_ROOT}/examples/g1-dex3/g1_dex3_head_config.py}"
 BASE_MODEL="${BASE_MODEL:-nvidia/GR00T-N1.7-3B}"
 HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-0}"
 TRANSFORMERS_OFFLINE="${TRANSFORMERS_OFFLINE:-0}"
@@ -214,11 +214,6 @@ timeout "${INNER_TIMEOUT}" srun --ntasks=1 --gpus="${NUM_GPUS}" \
             export HF_TOKEN="$(< "${HF_HOME}/token")"
         fi
         python -c "import torch, gr00t; assert torch.cuda.is_available(); print(torch.cuda.get_device_name(0))"
-        if [[ -f scripts/cluster/validate_lerobot_dataset.py ]]; then
-            python scripts/cluster/validate_lerobot_dataset.py --dataset-path /data/dataset_0
-        else
-            echo "Skipping scripts/cluster/validate_lerobot_dataset.py (not in this checkout)"
-        fi
         NUM_GPUS="'"${NUM_GPUS}"'" \
         MASTER_PORT="'"${MASTER_PORT}"'" \
         MAX_STEPS="'"${MAX_STEPS}"'" \

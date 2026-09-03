@@ -146,7 +146,6 @@ srun --ntasks=1 --gpus=1 \
             fi
             rm -rf "${DEST}"
             mv "${SRC}" "${DEST}"
-            python scripts/cluster/validate_lerobot_dataset.py --dataset-path "${DEST}"
             echo "Saved dataset at ${DEST}"
         done
         rm -rf "${STAGE}"

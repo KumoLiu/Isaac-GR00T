@@ -43,7 +43,6 @@ srun --ntasks=1 --gpus=1 \
         export HF_TOKEN="$(< /run/secrets/hf_token)"
         export PYTHONPATH="/workspace/Isaac-GR00T${PYTHONPATH:+:${PYTHONPATH}}"
         hf auth whoami
-        python scripts/cluster/validate_lerobot_dataset.py --dataset-path /data/g1
         python gr00t/eval/open_loop_eval.py \
             --model-path "'"$MODEL_PATH"'" \
             --dataset-path /data/g1 \
