@@ -46,7 +46,22 @@ REPO_ROOT="${REPO_ROOT:-${USER_BASE}/code/Isaac-GR00T}"
 CONTAINER_IMAGE="${CONTAINER_IMAGE:-${USER_BASE}/docker/gr00t-n1.7-cu128.sqsh}"
 DATASET_ROOT="${DATASET_ROOT:-${USER_BASE}/datasets}"
 DATASET_DIR_NAME="${DATASET_DIR_NAME:-pick_trocar_teleop_success_train}"
-DATASET_PATH="${DATASET_PATH:-${DATASET_ROOT}/${DATASET_DIR_NAME}}"
+# DATASET_PATH wins if already set (sbatch --export). Otherwise prefer a local
+# leaf dir, then the older nested HF layout, then "<path>_train".
+if [[ -z "${DATASET_PATH:-}" ]]; then
+    _leaf="${DATASET_ROOT}/${DATASET_DIR_NAME}"
+    _nested="${DATASET_ROOT}/s2r_data_dev/yunl/real/g1/${DATASET_DIR_NAME}"
+    if [[ -f "${_leaf}/meta/info.json" ]]; then
+        DATASET_PATH="${_leaf}"
+    elif [[ -f "${_nested}/meta/info.json" ]]; then
+        DATASET_PATH="${_nested}"
+    else
+        DATASET_PATH="${_leaf}"
+    fi
+fi
+if [[ ! -f "${DATASET_PATH}/meta/info.json" && -f "${DATASET_PATH}_train/meta/info.json" ]]; then
+    DATASET_PATH="${DATASET_PATH}_train"
+fi
 HF_CACHE_ROOT="${HF_CACHE_ROOT:-${USER_BASE}/cache/huggingface}"
 CHECKPOINT_ROOT="${CHECKPOINT_ROOT:-${USER_BASE}/checkpoints/gr00t_ft}"
 EXP_PREFIX="${EXP_PREFIX:-g1_pick_trocar}"
@@ -113,7 +128,11 @@ IFS=':' read -ra _HOST_DATASETS <<< "${DATASET_PATH}"
 for host_ds in "${_HOST_DATASETS[@]}"; do
     if [[ ! -f "${host_ds}/meta/info.json" ]]; then
         echo "Dataset is not ready: ${host_ds}" >&2
-        echo "Download first, then resubmit:" >&2
+        echo "This path is DATASET_PATH from finetune_n17.slurm (or a leaked --export=ALL value)." >&2
+        echo "Your train split should be passed explicitly, for example:" >&2
+        echo "  sbatch --export=ALL,DATASET_PATH=${USER_BASE}/datasets/s2r_data_dev/yunl/real/g1/pick_trocar_teleop_success_train \\" >&2
+        echo "    ${REPO_ROOT}/scripts/cluster/finetune_n17.slurm" >&2
+        echo "Or download a leaf dir first:" >&2
         echo "  sbatch ${REPO_ROOT}/scripts/cluster/download_g1_dataset.slurm" >&2
         exit 1
     fi

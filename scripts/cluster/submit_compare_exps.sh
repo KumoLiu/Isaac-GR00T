@@ -32,6 +32,20 @@ if [[ "${KEEP_EXP_NAME:-0}" != "1" ]]; then
     unset EXP_NAME
 fi
 
+USER_BASE="${USER_BASE:-/lustre/fsw/portfolios/healthcareeng/users/${USER}}"
+if [[ -z "${DATASET_PATH:-}" ]]; then
+    for candidate in \
+        "${USER_BASE}/datasets/s2r_data_dev/yunl/real/g1/pick_trocar_teleop_success_train" \
+        "${USER_BASE}/datasets/pick_trocar_teleop_success_train"; do
+        if [[ -f "${candidate}/meta/info.json" ]]; then
+            DATASET_PATH="${candidate}"
+            break
+        fi
+    done
+    DATASET_PATH="${DATASET_PATH:-${USER_BASE}/datasets/s2r_data_dev/yunl/real/g1/pick_trocar_teleop_success_train}"
+fi
+echo "DATASET_PATH=${DATASET_PATH}"
+
 submit() {
     local job_name="$1"
     shift
@@ -48,13 +62,13 @@ echo "  C  <prefix>_<cam>_10k_bs64_lr1e-4"
 echo "  D  <prefix>_<cam>_10k_bs32_lr2e-5"
 
 submit "g1_10k_bs32" \
-    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}"
+    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
 
 submit "g1_30k_bs32" \
-    MAX_STEPS=30000,SAVE_STEPS=3000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}"
+    MAX_STEPS=30000,SAVE_STEPS=3000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
 
 submit "g1_10k_bs64" \
-    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=64,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}"
+    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=64,LEARNING_RATE=1e-4,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
 
 submit "g1_10k_lr2e-5" \
-    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=2e-5,NUM_GPUS="${GPUS}"
+    MAX_STEPS=10000,SAVE_STEPS=1000,GLOBAL_BATCH_SIZE=32,LEARNING_RATE=2e-5,NUM_GPUS="${GPUS}",DATASET_PATH="${DATASET_PATH}"
