@@ -208,13 +208,17 @@ timeout "${INNER_TIMEOUT}" srun --ntasks=1 --gpus="${NUM_GPUS}" \
         export TRANSFORMERS_OFFLINE="'"${TRANSFORMERS_OFFLINE}"'"
         export TORCH_NCCL_ENABLE_MONITORING=0
         export TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC=1800
-        export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+        export PYTORCH_ALLOC_CONF=expandable_segments:True
         export CUDA_HOME=/usr/local/cuda
         if [[ -f "${HF_HOME}/token" ]]; then
             export HF_TOKEN="$(< "${HF_HOME}/token")"
         fi
         python -c "import torch, gr00t; assert torch.cuda.is_available(); print(torch.cuda.get_device_name(0))"
-        python scripts/cluster/validate_lerobot_dataset.py --dataset-path /data/dataset_0
+        if [[ -f scripts/cluster/validate_lerobot_dataset.py ]]; then
+            python scripts/cluster/validate_lerobot_dataset.py --dataset-path /data/dataset_0
+        else
+            echo "Skipping scripts/cluster/validate_lerobot_dataset.py (not in this checkout)"
+        fi
         NUM_GPUS="'"${NUM_GPUS}"'" \
         MASTER_PORT="'"${MASTER_PORT}"'" \
         MAX_STEPS="'"${MAX_STEPS}"'" \
