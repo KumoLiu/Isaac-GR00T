@@ -8,25 +8,29 @@
 #SBATCH --output=/lustre/fsw/portfolios/healthcareeng/projects/healthcareeng_isaac/logs/gr00t_ft/%x-%j.out
 #SBATCH --error=/lustre/fsw/portfolios/healthcareeng/projects/healthcareeng_isaac/logs/gr00t_ft/%x-%j.err
 
-# Upload a GR00T checkpoint into nvidia/s2r_models_dev.
-# Default remote folder:
-#   https://huggingface.co/nvidia/s2r_models_dev/tree/main/yunl/sft/g1/pick_trocar
+# Upload a GR00T checkpoint into nvidia/s2r_models_dev as a named folder:
+#   https://huggingface.co/nvidia/s2r_models_dev/tree/main/yunl/sft/g1/pick_trocar/<folder>
+# huggingface_hub upload_folder sends *contents* of CHECKPOINT_PATH, so this
+# script always appends HF_FOLDER_NAME and never dumps files onto pick_trocar/.
 #
-# Token must be able to WRITE that repo (org write access), not only read gated
-# models. Same file as training: $USER_BASE/cache/huggingface/token
+# Token must be able to WRITE that repo. Same file as training:
+#   $USER_BASE/cache/huggingface/token
 #
 # Required:
 #   CHECKPOINT_PATH  local checkpoint dir (config.json + weights)
 #
 # Optional:
 #   HF_REPO          default nvidia/s2r_models_dev
-#   HF_PATH_IN_REPO  default yunl/sft/g1/pick_trocar/<checkpoint-dir-name>
+#   HF_PREFIX        default yunl/sft/g1/pick_trocar
+#   HF_FOLDER_NAME   remote folder under prefix (default: experiment name, or
+#                    the checkpoint directory name)
 #   WEIGHTS_ONLY     1 = skip optimizer/scheduler/RNG (default 1)
-#   CREATE_REPO      0 = do not create the org repo (default 0)
 #
-# Example (976128, step 27000):
-#   sbatch --export=CHECKPOINT_PATH=/lustre/fsw/portfolios/healthcareeng/users/yunl/checkpoints/gr00t_ft/g1_pick_trocar_room_30k_bs32_lr1e-4/976128/checkpoint-27000 \
+# Example:
+#   sbatch --export=CHECKPOINT_PATH=/lustre/.../g1_pick_trocar_room_30k_bs32_lr1e-4/976128/checkpoint-27000 \
 #     scripts/cluster/upload_hf.slurm
+# Lands at:
+#   .../tree/main/yunl/sft/g1/pick_trocar/g1_pick_trocar_room_30k_bs32_lr1e-4
 
 set -euo pipefail
 
@@ -36,10 +40,21 @@ HF_CACHE_ROOT="${HF_CACHE_ROOT:-${USER_BASE}/cache/huggingface}"
 HF_TOKEN_FILE="${HF_TOKEN_FILE:-${HF_CACHE_ROOT}/token}"
 CHECKPOINT_PATH="${CHECKPOINT_PATH:?Set CHECKPOINT_PATH to the checkpoint directory}"
 HF_REPO="${HF_REPO:-nvidia/s2r_models_dev}"
-HF_PATH_IN_REPO="${HF_PATH_IN_REPO:-yunl/sft/g1/pick_trocar/$(basename "${CHECKPOINT_PATH}")}"
+HF_PREFIX="${HF_PREFIX:-yunl/sft/g1/pick_trocar}"
 WEIGHTS_ONLY="${WEIGHTS_ONLY:-1}"
 CREATE_REPO="${CREATE_REPO:-0}"
-COMMIT_MESSAGE="${COMMIT_MESSAGE:-Upload $(basename "${CHECKPOINT_PATH}") from ${SLURM_JOB_ID:-manual}}"
+
+CHECKPOINT_LEAF="$(basename "${CHECKPOINT_PATH}")"
+if [[ -z "${HF_FOLDER_NAME:-}" ]]; then
+    # .../<exp>/<chain-id>/checkpoint-N  ->  <exp>
+    if [[ "${CHECKPOINT_LEAF}" == checkpoint-* ]]; then
+        HF_FOLDER_NAME="$(basename "$(dirname "$(dirname "${CHECKPOINT_PATH}")")")"
+    else
+        HF_FOLDER_NAME="${CHECKPOINT_LEAF}"
+    fi
+fi
+HF_PATH_IN_REPO="${HF_PREFIX}/${HF_FOLDER_NAME}"
+COMMIT_MESSAGE="${COMMIT_MESSAGE:-Upload ${HF_FOLDER_NAME} from ${SLURM_JOB_ID:-manual}}"
 
 for path in "$CONTAINER_IMAGE" "$HF_TOKEN_FILE" "$CHECKPOINT_PATH"; do
     [[ -e "$path" ]] || { echo "Missing required path: $path" >&2; exit 1; }
@@ -51,7 +66,7 @@ fi
 
 echo "Checkpoint:   ${CHECKPOINT_PATH}"
 echo "HF repo:      ${HF_REPO}"
-echo "Path in repo: ${HF_PATH_IN_REPO}"
+echo "Remote dir:   ${HF_PATH_IN_REPO}"
 echo "URL:          https://huggingface.co/${HF_REPO}/tree/main/${HF_PATH_IN_REPO}"
 echo "Weights only: ${WEIGHTS_ONLY}"
 
