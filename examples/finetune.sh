@@ -9,6 +9,7 @@ MAX_STEPS="${MAX_STEPS:-10000}"
 USE_WANDB="${USE_WANDB:-1}"
 DATALOADER_NUM_WORKERS="${DATALOADER_NUM_WORKERS:-4}"
 GLOBAL_BATCH_SIZE="${GLOBAL_BATCH_SIZE:-32}"
+LEARNING_RATE="${LEARNING_RATE:-1e-4}"
 SHARD_SIZE="${SHARD_SIZE:-1024}"
 NUM_SHARDS_PER_EPOCH="${NUM_SHARDS_PER_EPOCH:-100000}"
 EPISODE_SAMPLING_RATE="${EPISODE_SAMPLING_RATE:-0.1}"
@@ -26,6 +27,7 @@ COLOR_JITTER_PARAMS="${COLOR_JITTER_PARAMS:-brightness 0.3 contrast 0.4 saturati
 USE_PERCENTILES=""
 SHORTEST_IMAGE_EDGE=""
 CROP_FRACTION=""
+USE_DDP=""
 EXTRA_ARGS=()
 
 usage() {
@@ -42,6 +44,7 @@ Usage: bash examples/finetune.sh \
   [--shortest-image-edge <pixels>] \
   [--crop-fraction <fraction>] \
   [--ds-weights-alpha <value>] \
+  [--use-ddp] \
   [--save-only-model] \
   [--resume-from-checkpoint] \
   [-- <extra launch_finetune.py args>...]
@@ -102,6 +105,10 @@ while [ "$#" -gt 0 ]; do
             DS_WEIGHTS_ALPHA="$2"
             shift 2
             ;;
+        --use-ddp)
+            USE_DDP=1
+            shift
+            ;;
         --save-only-model)
             SAVE_ONLY_MODEL=1
             shift
@@ -152,7 +159,7 @@ LAUNCH_CMD=(
     --max_steps "$MAX_STEPS"
     --warmup_ratio 0.05
     --weight_decay 1e-5
-    --learning_rate 1e-4
+    --learning_rate "$LEARNING_RATE"
     "${WANDB_FLAG[@]}"
     --global_batch_size "$GLOBAL_BATCH_SIZE"
     --dataloader_num_workers "$DATALOADER_NUM_WORKERS"
@@ -201,6 +208,9 @@ if [ -n "$CROP_FRACTION" ]; then
 fi
 if [ -n "$DS_WEIGHTS_ALPHA" ]; then
     LAUNCH_CMD+=(--ds_weights_alpha "$DS_WEIGHTS_ALPHA")
+fi
+if [ -n "${USE_DDP:-}" ]; then
+    LAUNCH_CMD+=(--use_ddp)
 fi
 if [ -n "${SAVE_ONLY_MODEL:-}" ]; then
     LAUNCH_CMD+=(--save_only_model)
