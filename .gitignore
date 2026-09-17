@@ -168,3 +168,6 @@ offline_open_loop_eval_plots/
 # Generic model/data folders
 /models
 /data
+
+# Local G1 finetune checkpoints/evals (large)
+g1_pick_trocar_200_finetune/

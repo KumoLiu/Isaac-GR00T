@@ -153,6 +153,10 @@ class FinetuneConfig:
     num_gpus: int = 1
     """Number of GPUs available for distributed or single-node training."""
 
+    use_ddp: bool = False
+    """If True, use PyTorch DDP instead of DeepSpeed when num_gpus > 1.
+    Useful when CUDA toolkit / CUDA_HOME is unavailable (DeepSpeed needs nvcc)."""
+
     use_wandb: bool = False
     """
     If True, log metrics and artifacts to Weights & Biases (wandb).
