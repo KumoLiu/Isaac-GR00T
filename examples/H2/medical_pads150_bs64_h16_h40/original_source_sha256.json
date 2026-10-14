@@ -1,0 +1,22 @@
+{
+  "cluster_code_commit": "51d4c89f72fda44cbf77285c6a8114b52676b8a1",
+  "source_sha256_before_repository_formatting": {
+    "chain.py": "bc61c4ac997f6fc46248ca9cc44a03242a52fbdab255c490b0a2364b298becc7",
+    "download_hf.py": "58f5dabf9f89d583e0ecda0f8d24e7bece02fb45d07a7163c754d98402ada2a5",
+    "env.sh": "df4a7d82a9b81ffb88fa445190e95bb3c2270167f9ebfb2fc88ad9acd821a9b7",
+    "evaluate_checkpoints.py": "7a66d31548372d078ff484148b4f60bdbfd3d0890f86a821a5f62b82d0462f3a",
+    "evaluate_checkpoints.sbatch": "333736bbbd9bb94869b362319c6081dd6f4622a790fb55117835ca3a5d7aad17",
+    "h2_head_config.py": "1458d44f2fde40d48b500b1658655d84f961fe571bee5e66e0082d446081dc7c",
+    "official_runtime.py": "749441ab3ceee14503284a5db2141845fb3398cf3ddc71739696d0f4586f5599",
+    "plot_loss.py": "7cbdfbb08b978e202f78e4075a9fabe7500dce01185e130b20611ce87df602be",
+    "prepare.sbatch": "dc861f8087a40a24da3d5f4c19e2a5c988e53228dd32435c57fe1ed09f9bc27a",
+    "prepare_data.py": "a8eae4091ad816279bea93c5d6e4a6ba216924ee6ccbc234d4489840ff99e8ca",
+    "prepare_open_loop.py": "6f080c345a59c91e070d9259ca6937cf28cf2331658c65739055534586eaa1b3",
+    "prepare_open_loop.sbatch": "c277503a47476f81a21069e6719147b460e7e16746df8363201f7e0569bb77f2",
+    "report_open_loop.py": "0e1ba4fb7c3dc27ad511c32ce2040e0ffd36c26f94dae27e288187e8c6b9c68e",
+    "submit_experiments.py": "8075ef0a000394b020b1002f35d4a6ea717939a832289c3c958272f8b33ac87f",
+    "train_segment.sbatch": "be96044ca285e8fd4b5533054a0303166babfaffb989d5d3728d9ea67b8b2cf8",
+    "upload_models.py": "ba8b4960f0bd9db62b170fe86f42b89341d808f38e2834ff304b717d8bfd8bf2",
+    "upload_models.sbatch": "1afb1923926bab1960c11c21f39783ad46b89e40747091412962d3c61fb3591f"
+  }
+}

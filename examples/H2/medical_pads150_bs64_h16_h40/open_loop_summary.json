@@ -1,0 +1,210 @@
+{
+  "dataset_role": "training_set_fit_evaluation",
+  "episodes_per_checkpoint": 150,
+  "frames_per_checkpoint": 48671,
+  "checkpoints_evaluated": 72,
+  "execution_horizon": 16,
+  "denoising_steps": 4,
+  "mean_episode_hold_state_mse": 0.003074390339397656,
+  "runs": [
+    {
+      "run_id": "h16_s10000",
+      "evaluated_checkpoints": 6,
+      "best_training_fit_checkpoint": {
+        "run_id": "h16_s10000",
+        "horizon": 16,
+        "target_steps": 10000,
+        "checkpoint_step": 10000,
+        "mean_episode_mse": 0.0003469634098808755,
+        "mean_episode_mae": 0.009228404935811221,
+        "pooled_mse": 0.00036354601568015923,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0006850717270277018,
+        "right_arm_mse": 0.0006614438066491499,
+        "left_hand_mse": 0.00027974133945365926,
+        "right_hand_mse": 0.00020654361678965055
+      },
+      "final_checkpoint": {
+        "run_id": "h16_s10000",
+        "horizon": 16,
+        "target_steps": 10000,
+        "checkpoint_step": 10000,
+        "mean_episode_mse": 0.0003469634098808755,
+        "mean_episode_mae": 0.009228404935811221,
+        "pooled_mse": 0.00036354601568015923,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0006850717270277018,
+        "right_arm_mse": 0.0006614438066491499,
+        "left_hand_mse": 0.00027974133945365926,
+        "right_hand_mse": 0.00020654361678965055
+      },
+      "final_mse_change_from_earliest_available": 0.6086421699569534
+    },
+    {
+      "run_id": "h16_s30000",
+      "evaluated_checkpoints": 10,
+      "best_training_fit_checkpoint": {
+        "run_id": "h16_s30000",
+        "horizon": 16,
+        "target_steps": 30000,
+        "checkpoint_step": 28500,
+        "mean_episode_mse": 0.0001688678534316259,
+        "mean_episode_mae": 0.005406391964246634,
+        "pooled_mse": 0.0001853096158586288,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.00026860167696462963,
+        "right_arm_mse": 0.00026339289348818203,
+        "left_hand_mse": 0.00016128488324253945,
+        "right_hand_mse": 0.00011464118520585249
+      },
+      "final_checkpoint": {
+        "run_id": "h16_s30000",
+        "horizon": 16,
+        "target_steps": 30000,
+        "checkpoint_step": 30000,
+        "mean_episode_mse": 0.00016992593244122365,
+        "mean_episode_mae": 0.005386158208607058,
+        "pooled_mse": 0.00018629405803426426,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0002749286751662226,
+        "right_arm_mse": 0.00026615307615566466,
+        "left_hand_mse": 0.0001609162831258649,
+        "right_hand_mse": 0.00011490789061676068
+      },
+      "final_mse_change_from_earliest_available": 0.8703305817270215
+    },
+    {
+      "run_id": "h16_s80000",
+      "evaluated_checkpoints": 20,
+      "best_training_fit_checkpoint": {
+        "run_id": "h16_s80000",
+        "horizon": 16,
+        "target_steps": 80000,
+        "checkpoint_step": 79000,
+        "mean_episode_mse": 0.00011251796185293486,
+        "mean_episode_mae": 0.0035719358139015864,
+        "pooled_mse": 0.00012874752720518193,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.00013021520914102878,
+        "right_arm_mse": 0.00012947808426388304,
+        "left_hand_mse": 0.00013055500327408307,
+        "right_hand_mse": 8.345357552754602e-05
+      },
+      "final_checkpoint": {
+        "run_id": "h16_s80000",
+        "horizon": 16,
+        "target_steps": 80000,
+        "checkpoint_step": 80000,
+        "mean_episode_mse": 0.00011258240438711607,
+        "mean_episode_mae": 0.003576155064340048,
+        "pooled_mse": 0.00012881653267810147,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.00013052574137654646,
+        "right_arm_mse": 0.0001294785022560597,
+        "left_hand_mse": 0.0001305594583565433,
+        "right_hand_mse": 8.352007569002437e-05
+      },
+      "final_mse_change_from_earliest_available": 0.9270066788731522
+    },
+    {
+      "run_id": "h40_s10000",
+      "evaluated_checkpoints": 6,
+      "best_training_fit_checkpoint": {
+        "run_id": "h40_s10000",
+        "horizon": 40,
+        "target_steps": 10000,
+        "checkpoint_step": 9500,
+        "mean_episode_mse": 0.0005125345091189299,
+        "mean_episode_mae": 0.008965183244743938,
+        "pooled_mse": 0.0005286630451790186,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0009534223737749511,
+        "right_arm_mse": 0.0009536489478706817,
+        "left_hand_mse": 0.00029829244923221536,
+        "right_hand_mse": 0.0004461394724668074
+      },
+      "final_checkpoint": {
+        "run_id": "h40_s10000",
+        "horizon": 40,
+        "target_steps": 10000,
+        "checkpoint_step": 10000,
+        "mean_episode_mse": 0.0005174920993880735,
+        "mean_episode_mae": 0.009000557570022645,
+        "pooled_mse": 0.0005334070450991274,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0009620218584118404,
+        "right_arm_mse": 0.000972241005372883,
+        "left_hand_mse": 0.00029560890159122403,
+        "right_hand_mse": 0.0004532411765003761
+      },
+      "final_mse_change_from_earliest_available": 0.44524729423629905
+    },
+    {
+      "run_id": "h40_s30000",
+      "evaluated_checkpoints": 10,
+      "best_training_fit_checkpoint": {
+        "run_id": "h40_s30000",
+        "horizon": 40,
+        "target_steps": 30000,
+        "checkpoint_step": 29500,
+        "mean_episode_mse": 0.00041511463042626155,
+        "mean_episode_mae": 0.0060534809556761215,
+        "pooled_mse": 0.00043097052703664916,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0006689979426403179,
+        "right_arm_mse": 0.0006548588831574481,
+        "left_hand_mse": 0.00020276729791969856,
+        "right_hand_mse": 0.00047039864681388367
+      },
+      "final_checkpoint": {
+        "run_id": "h40_s30000",
+        "horizon": 40,
+        "target_steps": 30000,
+        "checkpoint_step": 30000,
+        "mean_episode_mse": 0.00041522003842500634,
+        "mean_episode_mae": 0.006053691455850265,
+        "pooled_mse": 0.0004310748924936675,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0006691350843846858,
+        "right_arm_mse": 0.0006551150251708181,
+        "left_hand_mse": 0.00020300190484795204,
+        "right_hand_mse": 0.00047031679795940436
+      },
+      "final_mse_change_from_earliest_available": 0.6611772052402665
+    },
+    {
+      "run_id": "h40_s80000",
+      "evaluated_checkpoints": 20,
+      "best_training_fit_checkpoint": {
+        "run_id": "h40_s80000",
+        "horizon": 40,
+        "target_steps": 80000,
+        "checkpoint_step": 70000,
+        "mean_episode_mse": 0.0003540753321347727,
+        "mean_episode_mae": 0.004786660719354578,
+        "pooled_mse": 0.0003701892077636558,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0005213173583071651,
+        "right_arm_mse": 0.0005473842249497459,
+        "left_hand_mse": 0.0001808629976225148,
+        "right_hand_mse": 0.00041256691969650505
+      },
+      "final_checkpoint": {
+        "run_id": "h40_s80000",
+        "horizon": 40,
+        "target_steps": 80000,
+        "checkpoint_step": 80000,
+        "mean_episode_mse": 0.00035434360276391725,
+        "mean_episode_mae": 0.004675141371551395,
+        "pooled_mse": 0.00037040781760803684,
+        "mean_episode_hold_state_mse": 0.003074390339397656,
+        "left_arm_mse": 0.0005182591652911885,
+        "right_arm_mse": 0.0005419191575711508,
+        "left_hand_mse": 0.00017973491064303353,
+        "right_hand_mse": 0.0004171142120965495
+      },
+      "final_mse_change_from_earliest_available": 0.738423961434743
+    }
+  ],
+  "interpretation_limit": "All 150 episodes were used for training. These errors measure training-set fit, not held-out generalization or closed-loop success."
+}

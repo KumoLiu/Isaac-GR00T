@@ -1,0 +1,64 @@
+{
+  "date_utc": "2026-10-13T17:00:17.814094+00:00",
+  "cluster_alias": "nvidia-cluster",
+  "hf_repo": "nvidia/s2r_data_dev",
+  "hf_subfolder": "yunl/real/h2/medical_pads_150_telelop",
+  "hf_revision": "630d510259189257e0753046a3b63d0526018d7d",
+  "dataset_root": "/lustre/fsw/portfolios/healthcareeng/users/yunl/datasets/medical_pads_150_telelop",
+  "experiment_root": "/lustre/fsw/portfolios/healthcareeng/users/yunl/outputs/gr00t/medical_pads150_bs64_h16_h40_20261013",
+  "training_episodes": 150,
+  "training_frames": 48671,
+  "fps": 30,
+  "split_policy": "All 150 train episodes from the supplied dataset; no new holdout split",
+  "global_batch": 64,
+  "per_gpu_batch": 8,
+  "gpus_per_run": 8,
+  "gradient_accumulation_steps": 1,
+  "code_commit": "51d4c89f72fda44cbf77285c6a8114b52676b8a1",
+  "image": "gr00t-n1.7-cu128.sqsh",
+  "fresh_finetune_from_base": true,
+  "automatic_continuation": true,
+  "job_time_limit": "04:00:00",
+  "segment_handoff": "03:40:00",
+  "checkpoint_interval": 500,
+  "training_entrypoint": "official examples/finetune.sh -> launch_finetune.py",
+  "learning_rate": 0.0001,
+  "warmup_ratio": 0.05,
+  "scheduler": "cosine independently spanning each target step count",
+  "camera": "observation.images.cam_left_high",
+  "tactile": false,
+  "vision_frozen": true,
+  "llm_frozen": true,
+  "runs": [
+    {
+      "run_id": "h16_s10000",
+      "action_horizon": 16,
+      "max_optimizer_steps": 10000
+    },
+    {
+      "run_id": "h16_s30000",
+      "action_horizon": 16,
+      "max_optimizer_steps": 30000
+    },
+    {
+      "run_id": "h16_s80000",
+      "action_horizon": 16,
+      "max_optimizer_steps": 80000
+    },
+    {
+      "run_id": "h40_s10000",
+      "action_horizon": 40,
+      "max_optimizer_steps": 10000
+    },
+    {
+      "run_id": "h40_s30000",
+      "action_horizon": 40,
+      "max_optimizer_steps": 30000
+    },
+    {
+      "run_id": "h40_s80000",
+      "action_horizon": 40,
+      "max_optimizer_steps": 80000
+    }
+  ]
+}
